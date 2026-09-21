@@ -1,0 +1,55 @@
+#데이터 불러오기
+train_data <- read.csv("C:/Users/USER/Desktop/simple_train_data.csv")
+
+#산점도
+library(ggplot2)
+
+ggplot(train_data, aes(x = thigh, y = upper_arm)) +
+ geom_point(alpha = 0.7) +
+  labs(title = "대퇴부 vs 상박부 산점도",
+       x = "대퇴부 둘레 (thigh,cm)",
+       y = "상박부 둘레 (upper_arm, cm)") +
+     theme_minimal()
+
+#회구분석 모델
+model <- lm(upper_arm ~ thigh, data = train_data)
+summary(model)
+
+#잔차
+residuals(model)
+
+train_data <- read.csv("C:/Users/USER/Desktop/simple_train_2.csv")
+
+#산점도
+library(ggplot2)
+
+ggplot(train_data, aes(x = thigh, y = upper_arm)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "대퇴부 vs 상박부 산점도",
+       x = "대퇴부 둘레 (thigh,cm)",
+       y = "상박부 둘레 (upper_arm, cm)") +
+  theme_minimal()
+
+#회귀분석 모델
+model <- lm(upper_arm ~ thigh, data = train_data)
+summary(model)
+
+#잔차
+residuals(model)
+
+train_data <- read.csv("C:/Users/USER/Desktop/student_performance_dataset.csv")
+library(ggplot2)
+
+ggplot(train_data, aes(x = study_time_hours, y = final_exam_score)) +
+  geom_point(alpha = 0.7) +
+  labs(title = " 학업시간이 기말시험에 끼치는 영향",
+       x = "학업 시간 (study_time_hours,time)",
+       y = "기말 성적 (final_exam_score , exam)") +
+  theme_minimal()
+
+#회귀분석 모델
+model <- lm(final_exam_score ~study_time_hours , data = train_data)
+summary(model)
+
+#잔차
+residuals(model)
