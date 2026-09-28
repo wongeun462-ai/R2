@@ -55,6 +55,9 @@ summary(model)
 residuals(model)
 
 
+# 작업 디렉토리를 바탕화면으로 변경
+setwd("C:/Users/USER/Desktop")
+
 #데이터 불러오기
 train_data<- read.csv("C:/Users/USER/Desktop/simple_train_data.csv")
 test_data<- read.csv("C:/Users/USER/Desktop/simple_test_data.csv")
