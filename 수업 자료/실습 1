@@ -89,3 +89,20 @@ results <- data.frame(Actual = test_data$upper_arm, Predicted = predicted)
 #RMSE 계산산
 rmse <- sqrt(mean((results$Actual - results$Predicted)^2))
 print(paste("RMSE:", round(rmse, 3)))
+
+setwd("C:/Users/USER/Desktop")
+
+install.packages("rstatix")
+install.packages("skimr")
+
+library(rstatix)
+library(skimr)
+
+df <- read.csv("02.diabetes.csv", header = TRUE, stringsAsFactors = TRUE)
+skim(df)
+
+df <-na.omit(df)
+
+df <- select(df, -c(var1)) #var1 에 변수명을 입력해야한다
+df <- select(df, -c(var1, var2, var3))
+skim(df)
