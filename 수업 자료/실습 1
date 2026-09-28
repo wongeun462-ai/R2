@@ -106,3 +106,48 @@ df <-na.omit(df)
 df <- select(df, -c(var1)) #var1 에 변수명을 입력해야한다
 df <- select(df, -c(var1, var2, var3))
 skim(df)
+
+setwd("C:/Users/USER/Desktop")
+
+install.packages("rstatix")
+install.packages("skimr")
+
+library(rstatix)
+library(skimr)
+
+df <- read.csv("02.diabetes.csv", header = TRUE, stringsAsFactors = TRUE)
+skim(df)
+
+df <-na.omit(df)
+
+df <- select(df, -c(var1)) #var1 에 변수명을 입력해야한다
+df <- select(df, -c(var1, var2, var3))
+skim(df)
+
+df <- select(df, -c(Outcome))
+result <- lm(df$Diabetes ~ ., data = df)
+result1 <- lm(df$Diabetes ~ 1, data = df)
+
+anova_result <- anova(result1, result)
+print(anova_result)
+
+summary(result)
+
+df<- select(df, -c(Pregnancies, BloodPressure, BMI,Age))
+print(anova_result)
+summary(result)
+
+saveRDS(result,"regression_model.rds")
+loaded_model <- readRDS("regression_model.rds")
+
+new_data <- read.csv("02.diabetes_test.csv")
+
+predicted<- predict(loaded_model,newdata = new_data)
+head(predicted)
+
+results <- data.frame(new_data, Predicted = predicted)
+
+rmse <- sqrt(mean((results$Diabete - results$Predicted)^2))
+print(paste("RMSE:", round(rmse,3)))
+
+
