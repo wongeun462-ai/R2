@@ -1,0 +1,81 @@
+install.packages("rstatix")
+install.packages("skimr")
+install.packages("car")
+
+library(rstatix)
+library(skimr)
+library(car)
+df <- read.csv ("C:/Users/USER/Desktop/student_performance_dataset.csv", header = TRUE, stringsAsFactors = TRUE)
+skim(df)
+
+df <- na.omit(df)
+
+result <- lm(df$final_exam_score ~ ., data = df)
+result1 <- lm(df$final_exam_score ~ 1, data = df)
+
+anova_result <- anova(result1,result)
+print(anova_result)
+
+summary(result)
+
+df <- select(df,-c(student_id,gender,parental_education,extracurricular_activities))
+
+Fitted <- fitted(result)
+Residuals <- resid(result)
+
+library(ggplot2)
+
+ggplot(df, aes(x = Fitted, y = Residuals )) +
+  geom_point(alpha = 0.6)
+  geom_smooth(method = "loess", se = FALSE  ,color = "blue")+
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs Fitted",x="적합값 (Fitted Values)", y= "잔차 (Residuals)") +
+    theme_minimal()
+  
+StdResid <- sqrt(abs(df$final_exam_score))  
+
+ggplot(df, aes(x = Fitted, y = Residuals )) +
+geom_point(alpha = 0.6)+
+geom_smooth(method = "loess", se = FALSE  ,color = "blue")+
+   labs(title = "Scale - Loaction plot(등분산성 확인)",
+        x="적합값 (Fitted Values)", 
+        y= "Standardized Residuals") +
+  theme_minimal()  
+  
+library(lmtest)
+bptest(result)
+
+library(car)
+durbinWatsonTest(result)
+
+shapiro_test(result$residuals)
+
+opar <- par(no.readonly = TRUE)
+par(mfrow = c(2,2))
+plot(result)
+par(opar)
+
+vif_values <- vif(result)
+
+print(vif_values)
+
+
+
+install.packages("MASS")
+library("MASS")
+
+result_bk = lm(df$final_exam_score ~., data = df)
+Df_fit_bk = stepAIC(result_bk, direction = "backward", trace = T)
+
+result_fw = lm(df$final_exam_score ~ 1, data = df)
+Df_fit_fk = stepAIC(result_fw, direction = "forward", scope = df$final_exam_score ~ final_grade + study_time_hours + previous_grade + 
+                      attendance_percent + internet_access + sleep_hours + part_time_job,trace = T)
+
+
+cand <- influencePlot(result, id = list(n=3))
+
+mf <- model.frame(result)
+z <- round(scale(mf[sapply(mf, is.numeric)]),1)
+
+rownames(z) <- rownames(mf)
+cbind(round(cand,2),z[rownames(cand),])
