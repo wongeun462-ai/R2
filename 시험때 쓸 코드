@@ -116,7 +116,7 @@ print(anova_result)
 
 summary(result)
 
-saveRDS(model, "regression_model.rds")
+saveRDS(result, "regression_model.rds")
 
 loaded_model <- readRDS("regression_model.rds")
 
@@ -177,7 +177,6 @@ z <- round(scale(mf[sapply(mf, is.numeric)]), 1)
 rownames(z) <- rownames(mf)
 
 cbind(round(cand, 2), z[rownames(cand), ])
-
 
 
 out_rows <- c("108", "121", "145", "160", "277") 
