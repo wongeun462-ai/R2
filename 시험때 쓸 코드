@@ -221,50 +221,78 @@ library(MASS)
 df <- read.csv("student_performance_dataset.csv", header = TRUE, stringsAsFactors = TRUE)
 df <- na.omit(df)
 df <- select(df, -c(student_id, final_grade))
+
 skim(df)
 
-result_full <- lm(final_exam_score ~ ., data = df)
-result_null <- lm(final_exam_score ~ 1, data = df)
+result <- lm(final_exam_score ~ ., data = df)
+result1 <- lm(final_exam_score ~ 1, data = df)
 
-anova(result_null, result_full)
-summary(result_full)
+anova_result <- anova(result1, result)
+print(anova_result)
 
-result_aic <- stepAIC(result_full, direction = "both", trace = TRUE)
-summary(result_aic)
+summary(result)
 
-cand <- influencePlot(result_aic, id = list(n = 3))
+df$Fitted <- fitted(result)
+df$Residuals <- resid(result)
 
-cooks <- cooks.distance(result_aic)
-out_rows <- names(cooks[cooks > 0.02])
-df_clean <- df[!rownames(df) %in% out_rows, ]
-
-final_model <- lm(formula(result_aic), data = df_clean)
-summary(final_model)
-
-vif_values <- vif(final_model)
-print(vif_values)
-
-df_clean$Fitted <- fitted(final_model)
-df_clean$Residuals <- resid(final_model)
-
-ggplot(df_clean, aes(x = Fitted, y = Residuals)) +
+ggplot(df, aes(x = Fitted, y = Residuals)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", se = FALSE, color = "blue") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs Fitted (선형성 확인)", x = "적합값", y = "잔차") +
   theme_minimal()
 
-bptest(final_model)
+StdResid <- sqrt(abs(df$Residuals))
 
-durbinWatsonTest(final_model)
+ggplot(df, aes(x = Fitted, y = StdResid)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +
+  labs(title = "Scale-Location Plot (등분산성 확인)", x = "적합값", y = "Standardized Residuals") +
+  theme_minimal()
 
-shapiro_test(final_model$residuals)
+bptest(result)
+
+durbinWatsonTest(result)
+
+shapiro_test(result$residuals)
 
 opar <- par(no.readonly = TRUE)
 par(mfrow = c(2, 2))
-plot(final_model)
+plot(result)
 par(opar)
 
-predicted <- predict(final_model, newdata = df_clean)
-results <- data.frame(Actual = df_clean$final_exam_score, Predicted = predicted)
-rmse <- sqrt(mean((results$Actual - results$Predicted)^2))
+result_bk <- lm(final_exam_score ~ ., data = df)
+Df_fit_st <- stepAIC(result_bk, direction = "both", trace = TRUE)
+
+summary(Df_fit_st)
+
+cand <- influencePlot(Df_fit_st, id = list(n = 3))
+
+mf <- model.frame(Df_fit_st)
+z <- round(scale(mf[sapply(mf, is.numeric)]), 1)
+rownames(z) <- rownames(mf)
+cbind(round(cand, 2), z[rownames(cand), ])
+
+cooks <- cooks.distance(Df_fit_st)
+out_rows <- names(cooks[cooks > 0.02])
+df2 <- df[!rownames(df) %in% out_rows, ]
+
+result2 <- lm(formula(Df_fit_st), data = df2)
+
+cand2 <- influencePlot(result2, id = list(n = 3))
+max(cooks.distance(result2))
+
+vif_values <- vif(result2)
+
+print(vif_values)
+
+selected_predictors <- names(vif_values[vif_values > 7])
+print(selected_predictors)
+
+predicted <- predict(result2, newdata = df2)
+results <- data.frame(df2, Predicted = predicted)
+
+head(results)
+
+rmse <- sqrt(mean((results$final_exam_score - results$Predicted)^2))
 print(paste("RMSE:", round(rmse, 3)))
